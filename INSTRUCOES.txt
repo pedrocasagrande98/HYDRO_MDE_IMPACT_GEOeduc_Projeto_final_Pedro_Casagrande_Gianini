@@ -21,7 +21,7 @@ O objetivo deste projeto é fornecer uma **Plataforma de Análise Geoespacial In
 
 ### Passo 1: Pré-requisitos
 
-Antes de começar, garanta que você tenha o **Python 3.8 ou superior** instalado em seu sistema.
+Antes de começar, garanta que você tenha o **Python 3.10 ou superior** instalado em seu sistema.
 
 Em seguida, instale todas as bibliotecas necessárias. Para facilitar, todas estão listadas no arquivo `requirements.txt`. Abra seu terminal ou prompt de comando e execute:
 
@@ -33,7 +33,13 @@ pip install -r requirements.txt
 
 Para que você entenda onde encontrar cada funcionalidade, aqui está a organização do projeto:
 
-*   `pages/`: Contém os arquivos Python de cada página da aplicação Streamlit (ex: `1_Delimitar_Bacia.py`, `2_Processar_HAND.py`).
+*   `pages/`: Contém os arquivos Python de cada página da aplicação Streamlit:
+    - `1_Download_de_Dados.py` — Download de dados via Google Earth Engine
+    - `2_Análise_Hidrológica_Local.py` — Delimitação de bacia e cálculo HAND
+    - `3_Modelo_Risco_Solo.py` — Análise de risco por cota de inundação
+    - `4_Downloader_OSM.py` — Download de dados OpenStreetMap
+    - `5_Download_Open3B.py` — Download Google Open Buildings
+    - `6_statistics.py` — Estatísticas e relatórios
 *   `scripts/`: Armazena os módulos Python com a lógica de backend (ex: `processamento_hidrologico.py`, `analise_risco.py`).
 *   `insumos/`: Pasta com explicações detalhadas sobre as camadas e processos.
 *   `Fluxograma/`: Contém o fluxograma do sistema em formato Mermaid.js e a imagem PNG.
@@ -93,3 +99,36 @@ A aplicação é dividida em várias páginas, cada uma com uma função especí
 *   **Erros de arquivo:** Certifique-se de que os arquivos que você está enviando (GeoJSON, GeoTIFF) estão no formato correto e não estão corrompidos.
 
 Esperamos que este tutorial detalhado ajude você a aproveitar ao máximo nossa plataforma! Em caso de dúvidas, consulte a documentação no `readme.md` ou explore os scripts na pasta `scripts/` para entender a lógica por trás de cada processo.
+
+## 4. Resolução de Erros Comuns
+
+### ERRO: BoxKeyError 'xyz_to_folium' ao iniciar
+
+**Mensagem de erro:**
+    box.exceptions.BoxKeyError: "'Box' object has no attribute 'xyz_to_folium'"
+    File "geemap\foliumap.py", line 46, in <module>
+
+**Causa:** Incompatibilidade entre versões do geemap e python-box. Um import
+circular no geemap faz com que o módulo `basemaps` seja registrado como Box.
+
+**Solução passo a passo:**
+
+  1. Localize o arquivo foliumap.py do geemap:
+         python -c "import geemap.foliumap; import inspect; print(inspect.getfile(geemap.foliumap))"
+
+  2. Abra o arquivo no caminho exibido com um editor de texto (ex: Notepad++).
+
+  3. Localize a linha (aprox. linha 31):
+         from . import basemaps
+     Substitua por:
+         from geemap.basemaps import xyz_to_folium as _xyz_to_folium_fn
+
+  4. Localize a linha (aprox. linha 46):
+         basemaps = box.Box(basemaps.xyz_to_folium(), frozen_box=True)
+     Substitua por:
+         basemaps = box.Box(_xyz_to_folium_fn(), frozen_box=True)
+
+  5. Salve o arquivo e teste:
+         python -c "import geemap.foliumap as g; print('OK!')"
+
+  Para mais detalhes, consulte o arquivo `atualizacoes.doc`.

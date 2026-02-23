@@ -15,3 +15,4 @@ streamlit
 streamlit-vertical-slider
 streamlit-toggle
 leafmap
+python-box>=7.0
